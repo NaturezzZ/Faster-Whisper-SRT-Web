@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MP3 to SRT</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Upload MP3 File</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type="button" id="uploadButton" value="Upload">
+    </form>
+    <div id="uploadResult"></div>
+
+    <h1>MP3 Files</h1>
+    <ul>
+        {% for mp3_file in mp3_files %}
+            <li><a href="/download/{{ mp3_file }}">{{ mp3_file }}</a></li>
+        {% endfor %}
+    </ul>
+    <form id="generateSrtForm" method="POST" action="/generate_srt">
+        <select name="mp3_filename">
+            {% for mp3_file in mp3_files %}
+                <option value="{{ mp3_file }}">{{ mp3_file }}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="Generate SRT">
+    </form>
+    <div id="generateSrtResult"></div>
+
+    <h1>SRT Generation Queue</h1>
+    <ul>
+        {% for item in queue_items %}
+            <li>{{ item }}</li>
+        {% endfor %}
+    </ul>
+
+    <h1>Download SRT Files</h1>
+    <ul>
+        {% for srt_file in srt_files %}
+            <li><a href="/download/{{ srt_file }}">{{ srt_file }}</a></li>
+        {% endfor %}
+    </ul>
+    
+    <script>
+        $(document).ready(function() {
+            $('#uploadButton').click(function() {
+                var formData = new FormData($('#uploadForm')[0]);
+                $.ajax({
+                    url: '/upload',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        $('#uploadResult').html('Upload successful: ' + response.message);
+                    },
+                    error: function(xhr, status, error) {
+                        $('#uploadResult').html('Upload failed: ' + error);
+                    }
+                });
+            });
+
+            $('#generateSrtForm').submit(function(event) {
+                event.preventDefault();
+                var formData = new FormData(this);
+                $.ajax({
+                    url: '/generate_srt',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        $('#generateSrtResult').html(response.message);
+                    },
+                    error: function(xhr, status, error) {
+                        $('#generateSrtResult').html('SRT generation failed: ' + error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
